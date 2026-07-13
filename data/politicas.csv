@@ -1,0 +1,10 @@
+﻿categoria,pregunta,respuesta
+Préstamos,¿Cuántos libros puedo llevar a la vez?,Cada usuario puede llevar hasta 3 libros al mismo tiempo con su credencial vigente.
+Préstamos,¿Por cuántos días puedo llevar un libro?,"El préstamo estándar es de 14 días, con posibilidad de una renovación de 7 días adicionales si nadie más lo ha reservado."
+Préstamos,¿Cómo renuevo un préstamo?,"Puedes renovar en persona, por teléfono o desde el portal en línea de la biblioteca, siempre que el libro no tenga otra reserva pendiente."
+Multas,¿Qué pasa si entrego un libro tarde?,Se cobra una multa de $2 pesos por día de retraso por cada libro.
+Multas,¿Hay libros que no generan multa?,"Los materiales de la sección infantil no generan multa por atraso, pero sí deben devolverse para que otros niños puedan usarlos."
+Requisitos,¿Qué necesito para sacar una credencial?,Identificación oficial vigente y comprobante de domicilio. Menores de edad deben venir acompañados de un tutor.
+Requisitos,¿La credencial tiene costo?,"No, la credencial de la biblioteca es completamente gratuita."
+Uso de instalaciones,¿Puedo usar mi laptop en la biblioteca?,"Sí, contamos con mesas de trabajo y conexión WiFi gratuita para todos los visitantes."
+Uso de instalaciones,¿Se permite comer dentro de la biblioteca?,"No se permite comer dentro de las salas de lectura, pero sí hay un área designada para alimentos junto a la entrada."
