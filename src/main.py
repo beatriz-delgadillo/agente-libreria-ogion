@@ -1,3 +1,5 @@
-from lector_csv import leer_csv
-datos = leer_csv("catalogo.csv")
-print(datos.head())
+from agente import buscar_eventos
+
+
+resultado = buscar_eventos("2026-07-12")
+print(resultado)
