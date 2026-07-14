@@ -1,5 +1,8 @@
-from agente import buscar_eventos
+from agente import hablar_con_ollama
 
 
-resultado = buscar_eventos("2026-07-12")
-print(resultado)
+respuesta = hablar_con_ollama(
+    "Responde únicamente: Hola Irene, Ogion está funcionando."
+)
+
+print(respuesta)

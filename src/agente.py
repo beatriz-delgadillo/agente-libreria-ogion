@@ -1,4 +1,18 @@
 from lector_csv import leer_csv
+import ollama
+
+def hablar_con_ollama(mensaje):
+    respuesta = ollama.chat(
+        model="phi3",
+        messages=[
+            {
+                "role": "user",
+                "content": mensaje
+            }
+        ]
+    )
+
+    return respuesta["message"]["content"]
 
 
 def buscar_libros(consulta):
@@ -10,7 +24,7 @@ def buscar_libros(consulta):
         | catalogo["genero"].str.contains(consulta, case=False, na=False)
     ]
 
-    return coincidencias
+    return coincidencias 
 
 
 def buscar_horarios(consulta):
