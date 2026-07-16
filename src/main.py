@@ -1,3 +1,5 @@
+from base_de_datos import sincronizar
+
 from agente import (
     responder_sobre_eventos,
     responder_sobre_faq,
@@ -6,6 +8,11 @@ from agente import (
     responder_sobre_politicas,
 )
 
+# Sincroniza los CSV hacia la base SQLite interna cada vez que arranca el programa
+
+sincronizar()
+
+# Creacion de menú
 
 def mostrar_menu():
     print("\n📚 Bienvenido a Ogion, asistente de la biblioteca\n")

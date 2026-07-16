@@ -1,6 +1,8 @@
 import re
 
-from lector_csv import leer_csv
+import pandas as pd
+
+from base_de_datos import obtener_conexion
 
 import ollama
 
@@ -38,64 +40,81 @@ Reglas obligatorias:
 
     return respuesta["message"]["content"]
 
-#Definicion de herramientas de busqueda
+#Definicion de herramientas de busqueda 
 
-def buscar_libros(consulta):
-    catalogo = leer_csv("catalogo.csv")
+# Límite de resultados por búsqueda
+LIMITE_RESULTADOS = 10
 
-    coincidencias = catalogo[
-        catalogo["titulo"].str.contains(consulta, case=False, na=False)
-        | catalogo["autor"].str.contains(consulta, case=False, na=False)
-        | catalogo["genero"].str.contains(consulta, case=False, na=False)
+# Palabras que no aportan a la búsqueda (conectores, preguntas genéricas,etc).
+
+PALABRAS_VACIAS = {
+    "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al",
+    "en", "y", "o", "u", "que", "qué", "cual", "cuál", "cuales", "cuáles",
+    "es", "son", "hay", "tiene", "tienen", "puedo", "puede", "pueden",
+    "como", "cómo", "para", "por", "con", "sobre", "informacion",
+    "información", "a", "se", "si", "sí", "existe", "existen",
+}
+
+
+def tokenizar_consulta(consulta):
+    """Convierte una pregunta libre en una lista de palabras clave,
+    quitando signos de puntuación y palabras vacías. Si tras filtrar
+    no queda ninguna palabra útil, usa la consulta original tal cual."""
+    limpio = re.sub(r"[¿?¡!.,;:]", " ", consulta.lower())
+    palabras = [
+        p for p in limpio.split() if p and p not in PALABRAS_VACIAS and len(p) > 2
     ]
+    return palabras or [consulta.strip()]
 
-    return coincidencias
+
+def _buscar_generico(tabla, columnas, consulta):
+    """Busca en `tabla` filas donde CUALQUIERA de las palabras clave de
+    la consulta aparezca en CUALQUIERA de las columnas indicadas."""
+    palabras = tokenizar_consulta(consulta)
+
+    condiciones = []
+    parametros = []
+    for palabra in palabras:
+        patron = f"%{palabra}%"
+        sub_condicion = " OR ".join(f"{columna} LIKE ?" for columna in columnas)
+        condiciones.append(f"({sub_condicion})")
+        parametros.extend([patron] * len(columnas))
+
+    query = f"""
+        SELECT * FROM {tabla}
+        WHERE {' OR '.join(condiciones)}
+        LIMIT ?
+    """
+    parametros.append(LIMITE_RESULTADOS)
+
+    conn = obtener_conexion()
+    resultados = pd.read_sql_query(query, conn, params=parametros)
+    conn.close()
+    return resultados
+
+#Herramientas de busqueda por categoría
+def buscar_libros(consulta):
+    return _buscar_generico("catalogo", ["titulo", "autor", "genero"], consulta)
 
 
 def buscar_horarios(consulta):
-    horarios = leer_csv("horarios.csv")
-
-    coincidencias = horarios[
-        horarios["dia"].str.contains(consulta, case=False, na=False)
-    ]
-
-    return coincidencias
+    return _buscar_generico("horarios", ["dia"], consulta)
 
 
 def buscar_eventos(consulta):
-    eventos = leer_csv("eventos.csv")
-
-    coincidencias = eventos[
-        eventos["nombre"].str.contains(consulta, case=False, na=False)
-        | eventos["fecha"].str.contains(consulta, case=False, na=False)
-        | eventos["descripcion"].str.contains(consulta, case=False, na=False)
-        | eventos["publico"].str.contains(consulta, case=False, na=False)
-    ]
-
-    return coincidencias
+    return _buscar_generico(
+        "eventos", ["nombre", "fecha", "descripcion", "publico"], consulta
+    )
 
 
 def buscar_faq(consulta):
-    faq = leer_csv("faq.csv")
-
-    coincidencias = faq[
-        faq["pregunta"].str.contains(consulta, case=False, na=False)
-        | faq["respuesta"].str.contains(consulta, case=False, na=False)
-    ]
-
-    return coincidencias
+    return _buscar_generico("faq", ["pregunta", "respuesta"], consulta)
 
 
 def buscar_politicas(consulta):
-    politicas = leer_csv("politicas.csv")
-
-    coincidencias = politicas[
-        politicas["categoria"].str.contains(consulta, case=False, na=False)
-        | politicas["pregunta"].str.contains(consulta, case=False, na=False)
-        | politicas["respuesta"].str.contains(consulta, case=False, na=False)
-    ]
-
-    return coincidencias
+    return _buscar_generico(
+        "politicas", ["categoria", "pregunta", "respuesta"], consulta
+    )
 
 #Definicion de herramientas de respuesta con contexto
 
@@ -110,6 +129,15 @@ def formatear_contexto(df):
     return "\n---\n".join(bloques)
 
 
+# Para evitar falsos positivos
+PALABRAS_COMUNES_NO_VERIFICABLES = {
+    "tenemos", "contamos", "hay", "existen", "existe", "también", "además",
+    "actualmente", "cada", "toda", "todos", "todas", "puede", "pueden",
+    "según", "cabe", "estos", "estas", "esto", "esta", "este", "otro", "otra",
+    "otros", "otras", "sobre", "para", "esos", "esas", "aquí", "allí",
+}
+
+
 def verificar_fidelidad(respuesta, contexto):
     """Revisa que los datos concretos (números, nombres propios) que
     aparecen en la respuesta del modelo también existan en el contexto
@@ -118,6 +146,8 @@ def verificar_fidelidad(respuesta, contexto):
     Tolera reformulaciones comunes de rangos numéricos, por ejemplo
     que el modelo escriba "3-7" cuando el contexto original dice
     "3 a 7", ya que es una paráfrasis válida y no un dato inventado.
+    También ignora verbos/conectores comunes que aparecen capitalizados
+    solo por estar al inicio de una oración (no son datos reales).
     """
     tokens = re.findall(
         r'\b\d{1,4}(?:-\d+)*\b|\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{3,}\b', respuesta
@@ -125,6 +155,9 @@ def verificar_fidelidad(respuesta, contexto):
 
     faltantes = []
     for t in tokens:
+        if t.lower() in PALABRAS_COMUNES_NO_VERIFICABLES:
+            continue
+
         if t in contexto:
             continue
 
