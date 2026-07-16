@@ -8,11 +8,9 @@ from agente import (
     responder_sobre_politicas,
 )
 
-# Sincroniza los CSV hacia la base SQLite interna cada vez que arranca el programa
-
+# Sincroniza los CSV a la base SQLite interna cada vez que arranca el programa
 sincronizar()
 
-# Creacion de menú
 
 def mostrar_menu():
     print("\n📚 Bienvenido a Ogion, asistente de la biblioteca\n")
@@ -29,31 +27,26 @@ while True:
     opcion = input("\nSelecciona una opción: ").strip()
 
     if opcion == "1":
-        consulta = input("Escribe el título, autor o género: ").strip()
-        pregunta = f"¿Qué información hay sobre {consulta}?"
-        respuesta = responder_sobre_libros(pregunta, consulta)
+        consulta = input("Escribe el título, autor o género (puede ser una pregunta completa): ").strip()
+        respuesta = responder_sobre_libros(consulta, consulta)
 
     elif opcion == "2":
-        consulta = input("Escribe un día de la semana: ").strip()
-        pregunta = f"¿Cuál es el horario del {consulta}?"
-        respuesta = responder_sobre_horarios(pregunta, consulta)
+        consulta = input("Escribe un día de la semana (puede ser una pregunta completa): ").strip()
+        respuesta = responder_sobre_horarios(consulta, consulta)
 
     elif opcion == "3":
         consulta = input(
-            "Escribe el nombre, fecha, descripción o público del evento: "
+            "Escribe el nombre, fecha, descripción o público del evento (puede ser una pregunta completa): "
         ).strip()
-        pregunta = f"¿Qué información hay sobre eventos relacionados con {consulta}?"
-        respuesta = responder_sobre_eventos(pregunta, consulta)
+        respuesta = responder_sobre_eventos(consulta, consulta)
 
     elif opcion == "4":
-        consulta = input("Escribe una palabra clave: ").strip()
-        pregunta = f"¿Qué información frecuente hay sobre {consulta}?"
-        respuesta = responder_sobre_faq(pregunta, consulta)
+        consulta = input("Escribe tu pregunta o una palabra clave: ").strip()
+        respuesta = responder_sobre_faq(consulta, consulta)
 
     elif opcion == "5":
-        consulta = input("Escribe una palabra clave: ").strip()
-        pregunta = f"¿Qué política existe sobre {consulta}?"
-        respuesta = responder_sobre_politicas(pregunta, consulta)
+        consulta = input("Escribe tu pregunta o una palabra clave: ").strip()
+        respuesta = responder_sobre_politicas(consulta, consulta)
 
     elif opcion == "0":
         print("\nOgion: Hasta luego.")

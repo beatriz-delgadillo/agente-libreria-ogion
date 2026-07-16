@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 
-from base_de_datos import obtener_conexion
+from base_de_datos import obtener_conexion, quitar_acentos
 
 import ollama
 
@@ -45,7 +45,7 @@ Reglas obligatorias:
 # Límite de resultados por búsqueda
 LIMITE_RESULTADOS = 10
 
-# Palabras que no aportan a la búsqueda (conectores, preguntas genéricas,etc).
+# Palabras que no aportan a la búsqueda (conectores, preguntas genéricas).
 
 PALABRAS_VACIAS = {
     "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al",
@@ -67,16 +67,37 @@ def tokenizar_consulta(consulta):
     return palabras or [consulta.strip()]
 
 
+def variantes_palabra(palabra):
+    """Genera variantes simples de singular/plural de una palabra, para
+    que buscar 'novelas' también encuentre filas que dicen 'Novela'
+    (y viceversa). Es una regla simple, no cubre plurales irregulares,
+    pero resuelve el caso más común en español (agregar/quitar 's')."""
+    variantes = {palabra}
+    if palabra.endswith("s") and len(palabra) > 4:
+        variantes.add(palabra[:-1])
+    else:
+        variantes.add(palabra + "s")
+    return variantes
+
+
 def _buscar_generico(tabla, columnas, consulta):
     """Busca en `tabla` filas donde CUALQUIERA de las palabras clave de
-    la consulta aparezca en CUALQUIERA de las columnas indicadas."""
+    la consulta (o sus variantes de singular/plural) aparezca en
+    CUALQUIERA de las columnas indicadas, ignorando acentos."""
     palabras = tokenizar_consulta(consulta)
+
+    todas_las_variantes = set()
+    for palabra in palabras:
+        for variante in variantes_palabra(quitar_acentos(palabra)):
+            todas_las_variantes.add(variante)
 
     condiciones = []
     parametros = []
-    for palabra in palabras:
-        patron = f"%{palabra}%"
-        sub_condicion = " OR ".join(f"{columna} LIKE ?" for columna in columnas)
+    for variante in todas_las_variantes:
+        patron = f"%{variante}%"
+        sub_condicion = " OR ".join(
+            f"quitar_acentos({columna}) LIKE ?" for columna in columnas
+        )
         condiciones.append(f"({sub_condicion})")
         parametros.extend([patron] * len(columnas))
 
@@ -92,7 +113,7 @@ def _buscar_generico(tabla, columnas, consulta):
     conn.close()
     return resultados
 
-#Herramientas de busqueda por categoría
+
 def buscar_libros(consulta):
     return _buscar_generico("catalogo", ["titulo", "autor", "genero"], consulta)
 
@@ -129,12 +150,13 @@ def formatear_contexto(df):
     return "\n---\n".join(bloques)
 
 
-# Para evitar falsos positivos
+# Verbos y conectores se ignoran para no rechazar respuestas correctas por falsos positivos.
 PALABRAS_COMUNES_NO_VERIFICABLES = {
     "tenemos", "contamos", "hay", "existen", "existe", "también", "además",
     "actualmente", "cada", "toda", "todos", "todas", "puede", "pueden",
     "según", "cabe", "estos", "estas", "esto", "esta", "este", "otro", "otra",
     "otros", "otras", "sobre", "para", "esos", "esas", "aquí", "allí",
+    "tienen", "tiene",
 }
 
 
