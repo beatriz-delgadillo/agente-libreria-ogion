@@ -40,13 +40,16 @@ Reglas obligatorias:
 
     return respuesta["message"]["content"]
 
-#Definicion de herramientas de busqueda 
+#Definicion de herramientas de busqueda (ahora contra SQLite, no CSV directo)
 
-# Límite de resultados por búsqueda
+# Límite de resultados por búsqueda: evita mandar contextos gigantes al
+# modelo cuando el catálogo crezca a miles de filas.
 LIMITE_RESULTADOS = 10
 
 # Palabras que no aportan a la búsqueda (conectores, preguntas genéricas).
-
+# Si el usuario escribe una pregunta completa ("¿Tienen impresora?"), estas
+# palabras se descartan y solo se busca por las palabras con contenido real
+# ("impresora"), en vez de exigir que la frase completa aparezca literal.
 PALABRAS_VACIAS = {
     "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al",
     "en", "y", "o", "u", "que", "qué", "cual", "cuál", "cuales", "cuáles",
@@ -62,7 +65,8 @@ def tokenizar_consulta(consulta):
     no queda ninguna palabra útil, usa la consulta original tal cual."""
     limpio = re.sub(r"[¿?¡!.,;:]", " ", consulta.lower())
     palabras = [
-        p for p in limpio.split() if p and p not in PALABRAS_VACIAS and len(p) > 2
+        p for p in limpio.split()
+        if p and p not in PALABRAS_VACIAS and (p.isdigit() or len(p) > 2)
     ]
     return palabras or [consulta.strip()]
 
@@ -70,13 +74,20 @@ def tokenizar_consulta(consulta):
 def variantes_palabra(palabra):
     """Genera variantes simples de singular/plural de una palabra, para
     que buscar 'novelas' también encuentre filas que dicen 'Novela'
-    (y viceversa). Es una regla simple, no cubre plurales irregulares,
-    pero resuelve el caso más común en español (agregar/quitar 's')."""
+    (y viceversa), cubriendo los dos patrones más comunes del español:
+    agregar/quitar 's' (libro/libros) y agregar/quitar 'es'
+    (taller/talleres). No cubre plurales irregulares, pero resuelve
+    la gran mayoría de los casos reales."""
     variantes = {palabra}
+
+    if palabra.endswith("es") and len(palabra) > 5:
+        variantes.add(palabra[:-2])
     if palabra.endswith("s") and len(palabra) > 4:
         variantes.add(palabra[:-1])
-    else:
+    if not palabra.endswith("s"):
         variantes.add(palabra + "s")
+        variantes.add(palabra + "es")
+
     return variantes
 
 
@@ -150,37 +161,47 @@ def formatear_contexto(df):
     return "\n---\n".join(bloques)
 
 
-# Verbos y conectores se ignoran para no rechazar respuestas correctas por falsos positivos.
-PALABRAS_COMUNES_NO_VERIFICABLES = {
-    "tenemos", "contamos", "hay", "existen", "existe", "también", "además",
-    "actualmente", "cada", "toda", "todos", "todas", "puede", "pueden",
-    "según", "cabe", "estos", "estas", "esto", "esta", "este", "otro", "otra",
-    "otros", "otras", "sobre", "para", "esos", "esas", "aquí", "allí",
-    "tienen", "tiene",
-}
-
-
 def verificar_fidelidad(respuesta, contexto):
-    """Revisa que los datos concretos (números, nombres propios) que
-    aparecen en la respuesta del modelo también existan en el contexto
-    recuperado. Si algo no aparece, es señal de posible alucinación.
+    """Revisa que los datos concretos (números y nombres propios/títulos)
+    que aparecen en la respuesta del modelo también existan en el
+    contexto recuperado. Si algo no aparece, es señal de posible
+    alucinación.
+
+    A propósito solo marca:
+    - Números (ISBN, precios, cantidades, años).
+    - Frases de DOS O MÁS palabras seguidas con mayúscula inicial
+      (ej. "Harry Potter", "Julio Cortázar"), que es como se ven los
+      nombres propios y títulos reales o inventados.
+
+    Una sola palabra capitalizada suelta (ej. "Tenemos", "Novela") ya
+    NO se marca, porque casi siempre es solo el inicio de una oración
+    y no un dato en sí — marcarlas generaba demasiados falsos positivos
+    que rechazaban respuestas correctas.
 
     Tolera reformulaciones comunes de rangos numéricos, por ejemplo
     que el modelo escriba "3-7" cuando el contexto original dice
     "3 a 7", ya que es una paráfrasis válida y no un dato inventado.
-    También ignora verbos/conectores comunes que aparecen capitalizados
-    solo por estar al inicio de una oración (no son datos reales).
     """
-    tokens = re.findall(
-        r'\b\d{1,4}(?:-\d+)*\b|\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{3,}\b', respuesta
+    numeros = re.findall(r'\b\d{1,4}(?:-\d+)*\b', respuesta)
+    frases_propias = re.findall(
+        r'\b[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*)+\b',
+        respuesta,
     )
+    candidatos = numeros + frases_propias
+
+    articulos = {"el", "la", "los", "las", "un", "una", "unos", "unas"}
 
     faltantes = []
-    for t in tokens:
-        if t.lower() in PALABRAS_COMUNES_NO_VERIFICABLES:
+    for t in candidatos:
+        if t in contexto:
             continue
 
-        if t in contexto:
+        # El modelo suele anteponer un artículo al nombre real
+        # (ej. "El Taller de Escritura Creativa"), lo cual no aparece
+        # así en el contexto crudo. Si al quitar el artículo inicial
+        # el resto sí aparece, no es una alucinación.
+        primera_palabra, _, resto = t.partition(" ")
+        if primera_palabra.lower() in articulos and resto and resto in contexto:
             continue
 
         rango = re.match(r'^(\d+)-(\d+)$', t)

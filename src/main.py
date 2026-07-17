@@ -8,7 +8,9 @@ from agente import (
     responder_sobre_politicas,
 )
 
-# Sincroniza los CSV a la base SQLite interna cada vez que arranca el programa
+# Sincroniza los CSV (editables por los bibliotecarios en Excel) hacia
+# la base SQLite interna cada vez que arranca el programa, para que
+# cualquier cambio reciente en los archivos ya esté disponible.
 sincronizar()
 
 
