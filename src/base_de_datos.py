@@ -1,5 +1,6 @@
 """
-Este módulo sincroniza los archivos CSV a una base de datos SQLite interna que el agente usa para
+Este módulo sincroniza los archivos CSV (que los bibliotecarios editan
+en Excel) hacia una base de datos SQLite interna que el agente usa para
 buscar. Los CSV siguen siendo la fuente de verdad editable; la base
 SQLite es solo un índice derivado que se reconstruye cada vez que se
 llama a sincronizar().
@@ -11,6 +12,9 @@ from pathlib import Path
 
 import pandas as pd
 
+# Rutas calculadas a partir de la ubicación de este archivo, no del
+# directorio desde donde se ejecuta el programa (evita el bug de rutas
+# relativas frágiles que dependían del cwd).
 CARPETA_PROYECTO = Path(__file__).resolve().parent.parent
 CARPETA_DATOS = CARPETA_PROYECTO / "data"
 RUTA_DB = CARPETA_PROYECTO / "ogion_index.db"

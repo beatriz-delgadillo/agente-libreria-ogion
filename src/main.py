@@ -5,9 +5,8 @@ from agente import responder
 # la base SQLite interna cada vez que arranca el programa.
 sincronizar()
 
-print("📚 Bienvenido! Soy Ogion, el asistente de la biblioteca")
-print("Escribe tu pregunta (libros, horarios, eventos, servicios o políticas). ")
-print("Intenta no cometer errores ortográficos, soy sensible a ellos.")
+print("📚 Bienvenido a Ogion, asistente de la biblioteca")
+print("Escribe tu pregunta libremente (libros, horarios, eventos, servicios o políticas).")
 print("Escribe 'salir' para terminar.\n")
 
 while True:
