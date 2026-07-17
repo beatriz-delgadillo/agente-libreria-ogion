@@ -28,12 +28,45 @@ TABLAS = {
 }
 
 
+# Caracteres "tipográficos" que Word/Excel suelen sustituir automáticamente
+# y que se ven idénticos a su versión normal a simple vista, pero son un
+# carácter distinto a nivel de código (por eso una búsqueda por "wifi" no
+# encontraba "Wi‑Fi" escrito con un guion de no separación). Los guiones
+# (de cualquier variante, incluido el normal "-") se eliminan por completo
+# en vez de normalizarse, porque una palabra como "wifi" debe encontrar
+# "Wi-Fi" sin que el guion de en medio lo estorbe.
+CARACTERES_A_ELIMINAR = {
+    "\u2010": "",  # guion tipográfico
+    "\u2011": "",  # guion de no separación
+    "\u2012": "",  # guion de figura
+    "\u2013": "",  # guion en (en dash)
+    "\u2014": "",  # guion em (em dash)
+    "-": "",       # guion normal
+}
+
+CARACTERES_TIPOGRAFICOS = {
+    "\u00a0": " ",  # espacio de no separación
+    "\u2018": "'", "\u2019": "'",  # comillas simples curvas
+    "\u201c": '"', "\u201d": '"',  # comillas dobles curvas
+}
+
+
 def quitar_acentos(texto):
     """Quita tildes/acentos de un texto para que las búsquedas no
     dependan de que el usuario los escriba correctamente
-    (ej. 'Miercoles' debe encontrar 'Miércoles')."""
+    (ej. 'Miercoles' debe encontrar 'Miércoles'). De paso, elimina
+    guiones (de cualquier variante tipográfica) y normaliza otros
+    caracteres invisibles (espacios de no separación, comillas curvas)
+    que Word/Excel insertan solos al editar texto, para que tampoco
+    rompan la búsqueda (ej. 'wifi' debe encontrar 'Wi-Fi')."""
     if texto is None:
         return texto
+
+    for original, reemplazo in CARACTERES_A_ELIMINAR.items():
+        texto = texto.replace(original, reemplazo)
+    for original, reemplazo in CARACTERES_TIPOGRAFICOS.items():
+        texto = texto.replace(original, reemplazo)
+
     forma_descompuesta = unicodedata.normalize("NFKD", texto)
     return "".join(c for c in forma_descompuesta if not unicodedata.combining(c))
 
