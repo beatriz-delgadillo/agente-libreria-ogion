@@ -1,7 +1,41 @@
-﻿pregunta,respuesta
-¿Tienen impresora o fotocopiadora?,"Sí, contamos con servicio de impresión y fotocopiado a $1 peso por hoja en blanco y negro."
-¿Puedo reservar una sala de estudio?,"Sí, puedes reservar una sala de estudio grupal por hasta 2 horas presentándote en el mostrador de atención."
-¿Aceptan donaciones de libros?,"Sí, aceptamos donaciones de libros en buen estado. Puedes entregarlos directamente al personal en el mostrador."
-¿Hay estacionamiento disponible?,"Sí, la biblioteca cuenta con estacionamiento gratuito para visitantes en la parte trasera del edificio."
-¿Ofrecen acceso a internet?,"Sí, ofrecemos WiFi gratuito y también contamos con computadoras de uso público con límite de 1 hora por persona."
-¿Puedo consultar libros sin ser socio?,"Sí, la consulta en sala es libre y gratuita para cualquier persona, solo el préstamo a domicilio requiere credencial."
+pregunta,respuesta
+¿Puedo consultar libros sin tener credencial?,Sí. La consulta dentro de la biblioteca es libre y gratuita. Solo necesitas credencial para llevar libros a domicilio.
+¿Cómo obtengo una credencial?,"Presenta una identificación oficial vigente y un comprobante de domicilio reciente. Si eres menor de edad, debes acudir con tu madre, padre o tutor."
+¿La credencial es gratuita?,"Sí, la primera credencial es gratuita. La reposición por pérdida puede tener una cuota."
+¿Cuántos libros puedo llevarme?,Puedes tener hasta 5 libros prestados al mismo tiempo.
+¿Cuánto dura el préstamo?,El préstamo a domicilio dura 14 días naturales.
+¿Puedo renovar mis libros?,"Sí, puedes renovar cada préstamo hasta 2 veces por periodos de 14 días, siempre que nadie más haya solicitado el libro y tu cuenta esté al corriente."
+¿Cómo solicito una renovación?,Solicítala antes de la fecha de vencimiento en el mostrador de atención o mediante los canales habilitados por la biblioteca.
+¿Puedo reservar un libro que está prestado?,Sí. Puedes solicitar una reserva y la biblioteca te avisará cuando el libro esté disponible.
+¿Cuánto tiempo tengo para recoger un libro reservado?,Tienes 3 días hábiles a partir del aviso de disponibilidad.
+¿Puede otra persona devolver mis libros?,"Sí, cualquier persona puede devolverlos. El préstamo seguirá bajo tu responsabilidad hasta que la devolución quede registrada."
+¿Qué pasa si devuelvo un libro tarde?,Se cobra una multa de $2 pesos por cada día natural de retraso y por cada libro.
+¿Puedo pedir libros si tengo una multa?,No. Debes devolver los libros vencidos y pagar las multas antes de solicitar nuevos préstamos o renovaciones.
+¿Qué pasa si no devuelvo un libro?,Tu derecho a préstamo será suspendido hasta que devuelvas o repongas el libro y cubras los adeudos. Los incumplimientos reiterados pueden causar la cancelación permanente del servicio.
+¿Qué hago si perdí un libro?,Repórtalo cuanto antes. Deberás conseguir un ejemplar idéntico o seguir la alternativa de reposición autorizada por la biblioteca.
+¿Qué hago si dañé un libro?,"Avísale al personal. Según el daño, tendrás que pagar la reparación o entregar un ejemplar idéntico."
+¿Puedo comprar cualquier edición para reponer un libro?,No. La reposición debe ser idéntica o estar autorizada previamente por la biblioteca.
+¿Puedo usar la credencial de otra persona?,No. La credencial es personal e intransferible.
+¿Qué hago si perdí mi credencial?,Repórtala de inmediato para bloquearla y solicita una reposición presentando una identificación.
+¿Puedo devolver un libro aunque la biblioteca esté por cerrar?,"Sí, siempre que el punto de devolución continúe abierto. Verifica que el personal registre la entrega o utiliza el buzón autorizado, si está disponible."
+¿Dónde dejo los libros que consulté en sala?,Déjalos en los carros o espacios señalados. No los regreses directamente al estante.
+¿Se permite comer o beber dentro de la biblioteca?,No en las salas de lectura ni cerca de los libros. Utiliza únicamente las áreas designadas para alimentos.
+¿Puedo entrar con mi mascota?,"No, salvo que se trate de un animal de asistencia."
+¿Puedo tomar fotografías dentro de la biblioteca?,Las fotografías personales sin flash pueden permitirse si no molestan a otras personas. Las grabaciones o sesiones requieren autorización.
+¿La biblioteca cuida mis objetos personales?,"No. Mantén tus pertenencias contigo, ya que la biblioteca no se responsabiliza por pérdidas o robos."
+¿Aceptan donaciones de libros?,"Sí, siempre que estén en buen estado y sean adecuados para la colección. La biblioteca evalúa cada donación antes de aceptarla o incorporarla."
+¿Todos los libros donados se agregan al catálogo?,"No. La biblioteca decide su destino según sus necesidades, espacio y criterios de selección."
+¿Puedo recibir ayuda para encontrar un libro?,Sí. El personal puede ayudarte a buscarlo en el catálogo y a localizarlo en los estantes.
+¿Qué hago si el libro que busco no está disponible?,Puedes solicitar una reserva si está prestado o pedir orientación al personal para encontrar otro libro sobre el mismo tema.
+¿La biblioteca ofrece apoyo a personas con discapacidad?,Sí. Solicita apoyo al personal para facilitar la consulta y el préstamo de libros de acuerdo con los recursos disponibles.
+¿Dónde puedo presentar una queja o sugerencia?,Puedes hacerlo en el mostrador de atención o por los canales de contacto de la biblioteca.
+¿La biblioteca ofrece servicio de Wi‑Fi?,Sí. La biblioteca ofrece acceso gratuito a Internet inalámbrico para sus usuarios durante el horario de servicio.
+¿Necesito credencial para usar el Wi‑Fi?,"No necesariamente, aunque la biblioteca puede solicitar identificación o registro para acceder a algunos servicios digitales."
+¿Cuál es la contraseña del Wi‑Fi?,La contraseña vigente puede solicitarse al personal de la biblioteca en el mostrador de atención.
+"¿Puedo conectarme con mi teléfono, tableta o computadora portátil?",Sí. Puedes utilizar dispositivos personales compatibles con redes Wi‑Fi.
+¿El Wi‑Fi tiene costo?,No. El acceso al Wi‑Fi es gratuito para los usuarios de la biblioteca.
+¿Hay límite de tiempo para usar el Wi‑Fi?,El acceso está disponible mientras la biblioteca permanezca abierta y sujeto a la capacidad de la red.
+¿Qué hago si no puedo conectarme al Wi‑Fi?,Solicita apoyo al personal de la biblioteca para verificar la configuración básica de conexión.
+¿Puedo descargar archivos usando el Wi‑Fi?,"Sí, siempre que el uso sea legal, seguro y no afecte el funcionamiento de la red para otros usuarios."
+¿La biblioteca garantiza que el Wi‑Fi siempre funcionará?,"No. El servicio puede presentar interrupciones por mantenimiento, fallas técnicas o saturación de la red."
+¿Puedo realizar actividades ilegales usando el Wi‑Fi?,No. El uso indebido de la red puede ocasionar la suspensión temporal o permanente del acceso a los servicios de la biblioteca.

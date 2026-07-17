@@ -1,10 +1,48 @@
-﻿categoria,pregunta,respuesta
-Préstamos,¿Cuántos libros puedo llevar a la vez?,Cada usuario puede llevar hasta 3 libros al mismo tiempo con su credencial vigente.
-Préstamos,¿Por cuántos días puedo llevar un libro a mi casa?,"El préstamo estándar es de 14 días, con posibilidad de una renovación de 7 días adicionales si nadie más lo ha reservado."
-Préstamos,¿Cómo renuevo un préstamo?,"Puedes renovar en persona, por teléfono o desde el portal en línea de la biblioteca, siempre que el libro no tenga otra reserva pendiente."
-Multas,¿Qué pasa si entrego un libro tarde?,Se cobra una multa de $2 pesos por día de retraso por cada libro.
-Multas,¿Hay libros que no generan multa?,"Los materiales de la sección infantil no generan multa por atraso, pero sí deben devolverse para que otros niños puedan usarlos."
-Requisitos,¿Qué necesito para sacar una credencial?,Identificación oficial vigente y comprobante de domicilio. Menores de edad deben venir acompañados de un tutor.
-Requisitos,¿La credencial tiene costo?,"No, la credencial de la biblioteca es completamente gratuita."
-Uso de instalaciones,¿Puedo usar mi laptop en la biblioteca?,"Sí, contamos con mesas de trabajo y conexión WiFi gratuita para todos los visitantes."
-Uso de instalaciones,¿Se permite comer dentro de la biblioteca?,"No se permite comer dentro de las salas de lectura, pero sí hay un área designada para alimentos junto a la entrada."
+categoria,pregunta,respuesta
+Préstamos,¿Quién puede solicitar préstamos a domicilio?,"Las personas con credencial vigente de la biblioteca y sin adeudos, multas o sanciones activas pueden solicitar préstamos a domicilio."
+Préstamos,¿Cuántos libros puedo llevar a la vez?,Cada usuario puede llevar hasta 5 libros al mismo tiempo con su credencial vigente.
+Préstamos,¿Por cuántos días puedo llevar un libro a mi casa?,El préstamo a domicilio es por 14 días naturales.
+Préstamos,¿Puedo llevarme cualquier libro a domicilio?,Los libros disponibles para préstamo pueden llevarse a domicilio. Los ejemplares señalados exclusivamente para consulta en sala no pueden salir de la biblioteca.
+Préstamos,¿Puede otra persona usar mi credencial?,No. La credencial es personal e intransferible y su titular es responsable de todos los préstamos realizados con ella.
+Renovaciones,¿Cuántas veces puedo renovar un préstamo?,Cada préstamo puede renovarse hasta 2 veces por periodos de 14 días.
+Renovaciones,¿Cuándo puedo renovar un libro?,"Puedes renovarlo antes de la fecha de vencimiento, siempre que otro usuario no lo haya solicitado y que tu cuenta no tenga adeudos, multas o sanciones."
+Renovaciones,¿Cómo renuevo un préstamo?,Puedes solicitar la renovación en el mostrador de atención o por los medios de contacto habilitados por la biblioteca.
+Renovaciones,¿Desde qué fecha se cuentan los días de una renovación?,El nuevo periodo de 14 días se cuenta a partir de la fecha en que se realiza la renovación.
+Reservas,¿Puedo reservar un libro prestado?,Sí. Puedes solicitar la reserva de un libro que se encuentre prestado y la biblioteca te avisará cuando esté disponible.
+Reservas,¿Cuánto tiempo guardan un libro reservado?,"Una vez notificada la disponibilidad, el libro se conservará apartado durante 3 días hábiles. Después de ese plazo podrá asignarse al siguiente usuario o volver a estar disponible."
+Devoluciones,¿Dónde debo devolver los libros?,Los libros deben devolverse en el mostrador o en el punto de devolución indicado por la biblioteca.
+Devoluciones,¿Puede otra persona devolver mis libros?,"Sí. Cualquier persona puede devolverlos, pero la responsabilidad del préstamo continúa siendo del titular de la credencial hasta que la devolución quede registrada."
+Devoluciones,¿Cómo sé cuándo debo devolver un libro?,La fecha de devolución aparece en el comprobante de préstamo y puede consultarse con el personal de la biblioteca.
+Multas,¿Qué pasa si entrego un libro tarde?,Se aplica una multa de $2 pesos por cada día natural de retraso y por cada libro.
+Multas,¿La multa deja de aumentar cuando devuelvo el libro?,"Sí. La multa deja de acumularse cuando la devolución queda registrada, pero el adeudo debe pagarse para recuperar el servicio de préstamo."
+Multas,¿Puedo pedir más libros si tengo una multa pendiente?,No. El préstamo y la renovación se suspenden hasta que se devuelvan todos los libros vencidos y se paguen las multas correspondientes.
+Sanciones,¿Qué pasa si no devuelvo un libro?,Se suspenderá temporalmente el derecho a préstamo hasta que el libro sea devuelto o repuesto y se cubran las multas aplicables.
+Sanciones,¿Puedo perder permanentemente el derecho a préstamo?,"Sí. La biblioteca puede cancelar permanentemente el servicio de préstamo en casos de incumplimiento reiterado, negativa a devolver o reponer libros, uso indebido de la credencial o daño intencional al acervo."
+Sanciones,¿Qué sucede si reincido en devoluciones tardías?,"La biblioteca puede imponer suspensiones temporales adicionales cuando exista reincidencia, aun después de pagar las multas."
+Pérdida o daño,¿Qué debo hacer si pierdo un libro?,"Debes avisar de inmediato a la biblioteca y reponerlo con un ejemplar idéntico: mismo título, autor, edición e ISBN, en buen estado."
+Pérdida o daño,¿Qué pasa si no consigo un ejemplar idéntico al que perdí?,El personal evaluará el caso y podrá autorizar una edición equivalente o el pago del costo de reposición. No debes comprar un sustituto diferente sin autorización previa.
+Pérdida o daño,¿Qué pasa si daño un libro?,"Debes cubrir el costo de reparación determinado por la biblioteca o reponerlo con un ejemplar idéntico, según la gravedad del daño."
+Pérdida o daño,¿Qué se considera daño a un libro?,"Se considera daño escribir, subrayar, recortar, doblar, mojar, manchar, desprender páginas, romper la encuadernación o realizar cualquier acción que afecte su lectura o conservación."
+Pérdida o daño,¿Continúan las multas mientras se resuelve una pérdida?,Sí. Las multas pueden seguir acumulándose hasta que informes la pérdida y la biblioteca registre formalmente el proceso de reposición.
+Requisitos,¿Qué necesito para sacar una credencial?,"Debes presentar identificación oficial vigente y comprobante de domicilio reciente. Las personas menores de edad deben acudir con su madre, padre o tutor, quien asumirá la responsabilidad de los préstamos."
+Requisitos,¿La credencial tiene costo?,No. La expedición inicial de la credencial es gratuita.
+Requisitos,¿Qué hago si pierdo mi credencial?,Debes reportarla de inmediato para evitar su uso indebido. La reposición puede estar sujeta a verificación de identidad y al pago de la cuota vigente.
+Requisitos,¿Debo actualizar mis datos?,"Sí. Debes informar cualquier cambio de domicilio, teléfono o correo electrónico para mantener vigente tu registro."
+Consulta en sala,¿Puedo consultar libros sin credencial?,Sí. La consulta de libros dentro de la biblioteca es libre y gratuita; la credencial solo es necesaria para el préstamo a domicilio.
+Consulta en sala,¿Debo devolver los libros consultados directamente al estante?,"No. Después de consultarlos, colócalos en los carros o espacios señalados para que el personal los ordene correctamente."
+Uso de instalaciones,¿Qué conducta se espera dentro de la biblioteca?,"Las personas usuarias deben mantener un ambiente respetuoso, hablar en voz baja, seguir las indicaciones del personal y evitar conductas que interrumpan el estudio o la lectura."
+Uso de instalaciones,¿Se permite comer o beber dentro de la biblioteca?,No se permite comer en las salas ni colocar bebidas abiertas cerca de los libros. Solo pueden consumirse alimentos en las áreas expresamente designadas.
+Uso de instalaciones,¿Puedo ingresar con mascotas?,Solo se permite el acceso de animales de asistencia. Las mascotas deben permanecer fuera de la biblioteca.
+Uso de instalaciones,¿Puedo tomar fotografías o grabar videos?,"Las fotografías personales sin flash pueden permitirse si no molestan a otras personas ni dañan los libros. Las sesiones, grabaciones o usos comerciales requieren autorización previa."
+Seguridad,¿La biblioteca se hace responsable de objetos personales?,No. Cada persona es responsable de sus pertenencias y debe mantenerlas bajo vigilancia durante su estancia.
+Seguridad,¿Qué debo hacer en una emergencia?,"Sigue las instrucciones del personal, conserva la calma y utiliza las rutas de evacuación señaladas."
+Accesibilidad,¿Las personas con discapacidad pueden solicitar apoyo?,"Sí. El personal brindará apoyo razonable para facilitar el acceso, la consulta y el préstamo de libros, de acuerdo con los recursos disponibles."
+Privacidad,¿Cómo se utilizan mis datos personales?,"Los datos se utilizan únicamente para administrar la credencial, los préstamos, las reservas, los avisos y los adeudos, y se protegen conforme al aviso de privacidad aplicable."
+Donaciones,¿La biblioteca acepta donaciones de libros?,"Sí, puede recibir libros en buen estado y pertinentes para su colección. La aceptación queda sujeta a evaluación y los libros donados pasan a ser propiedad de la biblioteca."
+Donaciones,¿Todos los libros donados se integran al catálogo?,"No. La biblioteca decide cuáles incorporar, intercambiar, canalizar o descartar según sus necesidades, espacio y criterios de selección."
+Atención a usuarios,¿Dónde puedo presentar una queja o sugerencia?,Puedes comunicarla al personal del mostrador o mediante los canales de atención de la biblioteca. Se atenderá de manera respetuosa y confidencial.
+Servicios digitales,¿La biblioteca ofrece Wi‑Fi?,La biblioteca ofrece acceso gratuito a Internet inalámbrico durante el horario de servicio y sujeto a disponibilidad técnica.
+Servicios digitales,¿Cómo debe utilizarse el Wi‑Fi?,"El acceso a Internet debe utilizarse de forma responsable, respetando la legislación aplicable y los derechos de otras personas usuarias."
+Servicios digitales,¿Qué actividades están prohibidas en la red Wi‑Fi?,"Está prohibido utilizar la red para actividades ilegales, intentos de acceso no autorizado, distribución de software malicioso o acciones que afecten el servicio."
+Servicios digitales,¿La biblioteca garantiza disponibilidad permanente del Wi‑Fi?,"No. El servicio puede suspenderse temporalmente por mantenimiento, fallas técnicas o causas ajenas a la biblioteca."
+Servicios digitales,¿Quién es responsable de los dispositivos personales?,Cada usuario es responsable de la seguridad y el resguardo de sus dispositivos y de la información que transmita mediante la red.
