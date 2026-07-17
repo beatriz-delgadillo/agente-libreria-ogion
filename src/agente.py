@@ -6,11 +6,7 @@ from base_de_datos import obtener_conexion, quitar_acentos
 
 import ollama
 
-# Frase única de rechazo, usada en TODO el sistema: cuando la búsqueda no
-# encuentra nada, cuando el modelo no puede responder con el contexto
-# dado, y cuando la verificación de fidelidad rechaza una respuesta.
-# Tenerla en un solo lugar evita inconsistencias entre los distintos
-# puntos donde se puede "fallar" al responder.
+# Frase única de rechazo, usada en TODO el sistema
 RESPUESTA_SIN_INFORMACION = "No tengo esa información, por favor consulta con un bibliotecario."
 
 
@@ -52,14 +48,11 @@ Reglas obligatorias:
 
 #Definicion de herramientas de busqueda (ahora contra SQLite, no CSV directo)
 
-# Límite de resultados por búsqueda: evita mandar contextos gigantes al
-# modelo cuando el catálogo crezca a miles de filas.
+# Límite de resultados por búsqueda
 LIMITE_RESULTADOS = 10
 
 # Palabras que no aportan a la búsqueda (conectores, preguntas genéricas).
-# Si el usuario escribe una pregunta completa ("¿Tienen impresora?"), estas
-# palabras se descartan y solo se busca por las palabras con contenido real
-# ("impresora"), en vez de exigir que la frase completa aparezca literal.
+
 PALABRAS_VACIAS = {
     "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al",
     "en", "y", "o", "u", "que", "qué", "cual", "cuál", "cuales", "cuáles",
@@ -207,9 +200,6 @@ def verificar_fidelidad(respuesta, contexto):
             continue
 
         # El modelo suele anteponer un artículo al nombre real
-        # (ej. "El Taller de Escritura Creativa"), lo cual no aparece
-        # así en el contexto crudo. Si al quitar el artículo inicial
-        # el resto sí aparece, no es una alucinación.
         primera_palabra, _, resto = t.partition(" ")
         if primera_palabra.lower() in articulos and resto and resto in contexto:
             continue
