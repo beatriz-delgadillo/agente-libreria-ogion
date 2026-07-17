@@ -6,6 +6,14 @@ from base_de_datos import obtener_conexion, quitar_acentos
 
 import ollama
 
+# Frase única de rechazo, usada en TODO el sistema: cuando la búsqueda no
+# encuentra nada, cuando el modelo no puede responder con el contexto
+# dado, y cuando la verificación de fidelidad rechaza una respuesta.
+# Tenerla en un solo lugar evita inconsistencias entre los distintos
+# puntos donde se puede "fallar" al responder.
+RESPUESTA_SIN_INFORMACION = "No tengo esa información, por favor consulta con un bibliotecario."
+
+
 # definir mensaje ollama
 def hablar_con_ollama(mensaje):
     respuesta = ollama.chat(
@@ -13,7 +21,7 @@ def hablar_con_ollama(mensaje):
         messages=[
             {
                 "role": "system",
-                "content": """
+                "content": f"""
 Eres Ogion, un asistente de biblioteca pública.
 
 Reglas obligatorias:
@@ -22,10 +30,12 @@ Reglas obligatorias:
 1. Utiliza únicamente la información incluida en el contexto recuperado.
 2. Nunca inventes información.
 3. No deduzcas ni completes datos faltantes.
-4. Si el contexto no contiene la respuesta, responde exactamente:
-"No encontré información sobre eso en los registros de la biblioteca."
+4. Si el contexto no contiene la respuesta, responde ÚNICAMENTE con esta frase, sin agregar nada antes ni después:
+"{RESPUESTA_SIN_INFORMACION}"
 5. Responde de forma clara, breve y amable.
 6. Tu prioridad absoluta es la precisión por encima de la creatividad.
+7. Nunca comentes sobre errores ortográficos, de redacción o de gramática en la pregunta del usuario. Interpreta su intención lo mejor posible y responde directamente con la información del contexto.
+8. Nunca expliques por qué no puedes responder, ni razones en voz alta sobre el alcance de la pregunta. Si no puedes responder, usa exactamente la frase de la regla 4 y nada más.
 """,
             },
             {
@@ -232,10 +242,10 @@ Instrucciones obligatorias:
 1. Responde únicamente con información escrita de forma literal en el contexto.
 2. No agregues lugares, áreas, procedimientos, pasos ni recomendaciones que no aparezcan en el contexto.
 3. No reformules una ausencia de información como una explicación probable.
-4. Si el contexto no contiene la respuesta exacta, responde exactamente:
-"No encontré información sobre eso en los registros de la biblioteca."
+4. Si el contexto no contiene la respuesta exacta, responde ÚNICAMENTE, sin nada antes ni después:
+"{RESPUESTA_SIN_INFORMACION}"
 5. Puedes resumir, pero no añadir ningún dato nuevo.
-6. Sé breve y directo.
+6. Sé breve y directo. No expliques por qué no puedes responder.
 
 Respuesta:
 """
@@ -244,7 +254,7 @@ Respuesta:
 
     faltantes = verificar_fidelidad(respuesta_final, contexto)
     if faltantes:
-        return "No encontré información confiable sobre eso en los registros de la biblioteca."
+        return RESPUESTA_SIN_INFORMACION
 
     return respuesta_final
 
@@ -252,48 +262,131 @@ Respuesta:
 def responder_sobre_libros(pregunta, consulta):
     resultados = buscar_libros(consulta)
 
-    return responder_con_contexto(
-        pregunta,
-        resultados,
-        "No se encontraron coincidencias en el catálogo.",
-    )
+    return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
 
 
 def responder_sobre_horarios(pregunta, consulta):
     resultados = buscar_horarios(consulta)
 
-    return responder_con_contexto(
-        pregunta,
-        resultados,
-        "No se encontraron coincidencias en los horarios.",
-    )
+    return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
 
 
 def responder_sobre_eventos(pregunta, consulta):
     resultados = buscar_eventos(consulta)
 
-    return responder_con_contexto(
-        pregunta,
-        resultados,
-        "No se encontraron coincidencias en los eventos.",
-    )
+    return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
 
 
 def responder_sobre_faq(pregunta, consulta):
     resultados = buscar_faq(consulta)
 
-    return responder_con_contexto(
-        pregunta,
-        resultados,
-        "No se encontraron coincidencias en las preguntas frecuentes.",
-    )
+    return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
 
 
 def responder_sobre_politicas(pregunta, consulta):
     resultados = buscar_politicas(consulta)
 
-    return responder_con_contexto(
-        pregunta,
-        resultados,
-        "No se encontraron coincidencias en las políticas.",
+    return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
+
+
+#Definicion del clasificador de intencion (para la caja de texto libre)
+
+# Cada categoría tiene palabras clave con un "peso": las palabras muy
+# específicas de esa categoría valen 2 puntos, las genéricas (que
+# también podrían aparecer en otras categorías) valen 1 punto. Esto
+# ayuda a resolver casos ambiguos, por ejemplo "¿Cuántos libros puedo
+# pedir prestados?" contiene "libros" (genérico, categoría libros) pero
+# también "prestados" (específico, categoría políticas) — y políticas
+# debe ganar ahí, porque es una pregunta sobre reglas de préstamo, no
+# sobre buscar un libro en el catálogo.
+CATEGORIAS = {
+    "libros": {
+        "autor": 2, "autora": 2, "isbn": 2, "catalogo": 2, "novela": 2,
+        "novelas": 2, "genero": 2, "género": 2, "titulo": 2, "título": 2,
+        "libro": 1, "libros": 1,
+    },
+    "horarios": {
+        "horario": 2, "horarios": 2, "abren": 2, "cierran": 2, "apertura": 2,
+        "cierre": 2, "abierto": 2, "cerrado": 2, "lunes": 2, "martes": 2,
+        "miercoles": 2, "jueves": 2, "viernes": 2, "sabado": 2, "domingo": 2,
+        "hora": 1,
+    },
+    "eventos": {
+        "evento": 2, "eventos": 2, "taller": 2, "talleres": 2,
+        "actividad": 2, "actividades": 2, "club": 2, "cuentacuentos": 2,
+        "manualidades": 2, "presentacion": 2,
+    },
+    "faq": {
+        "impresora": 2, "imprimir": 2, "fotocopia": 2, "fotocopiadora": 2,
+        "wifi": 2, "internet": 2, "computadora": 2, "computadoras": 2,
+        "bano": 2, "servicio": 1, "servicios": 1,
+    },
+    "politicas": {
+        "politica": 2, "politicas": 2, "prestamo": 2, "prestamos": 2,
+        "credencial": 2, "multa": 2, "multas": 2, "renovar": 2,
+        "renovacion": 2, "devolver": 2, "devolucion": 2, "requisito": 2,
+        "requisitos": 2, "limite": 2, "prestar": 2, "prestado": 2,
+        "prestados": 2, "prestada": 2, "prestadas": 2,
+    },
+}
+
+BUSCADORES = {
+    "libros": (buscar_libros, RESPUESTA_SIN_INFORMACION),
+    "horarios": (buscar_horarios, RESPUESTA_SIN_INFORMACION),
+    "eventos": (buscar_eventos, RESPUESTA_SIN_INFORMACION),
+    "faq": (buscar_faq, RESPUESTA_SIN_INFORMACION),
+    "politicas": (buscar_politicas, RESPUESTA_SIN_INFORMACION),
+}
+
+
+def clasificar_intencion(pregunta):
+    """Devuelve una lista de categorías candidatas, ordenadas de la más
+    probable a la menos probable, según las palabras clave encontradas
+    en la pregunta. Si ninguna palabra clave hace match, devuelve una
+    lista vacía."""
+    limpio = quitar_acentos(re.sub(r"[¿?¡!.,;:]", " ", pregunta.lower()))
+    palabras = limpio.split()
+
+    puntajes = {categoria: 0 for categoria in CATEGORIAS}
+    for palabra in palabras:
+        for categoria, palabras_clave in CATEGORIAS.items():
+            if palabra in palabras_clave:
+                puntajes[categoria] += palabras_clave[palabra]
+
+    candidatas = sorted(
+        (categoria for categoria, puntos in puntajes.items() if puntos > 0),
+        key=lambda categoria: puntajes[categoria],
+        reverse=True,
     )
+    return candidatas
+
+
+def _fue_respuesta_fallida(respuesta):
+    # Se usa "in" (no "startswith") a propósito: si el modelo llegara a
+    # agregar texto antes de la frase de rechazo pese a la instrucción,
+    # esto la sigue detectando y prueba la siguiente categoría en vez
+    # de quedarse con una respuesta con explicaciones de más.
+    return RESPUESTA_SIN_INFORMACION in respuesta
+
+
+def responder(pregunta):
+    """Punto de entrada único para la caja de texto libre: prueba las
+    categorías en orden de probabilidad (según el clasificador) y, si
+    una categoría encuentra filas pero la respuesta generada termina
+    siendo un "no sé" (porque esas filas en realidad no respondían la
+    pregunta), prueba la siguiente categoría en vez de rendirse ahí.
+    Si el clasificador no dio ninguna pista, se prueban todas."""
+    candidatas = clasificar_intencion(pregunta)
+    orden = candidatas + [c for c in BUSCADORES if c not in candidatas]
+
+    for categoria in orden:
+        buscar_funcion, mensaje_vacio = BUSCADORES[categoria]
+        resultados = buscar_funcion(pregunta)
+        if resultados.empty:
+            continue
+
+        respuesta = responder_con_contexto(pregunta, resultados, mensaje_vacio)
+        if not _fue_respuesta_fallida(respuesta):
+            return respuesta
+
+    return RESPUESTA_SIN_INFORMACION
