@@ -1,19 +1,19 @@
 import re
-
+ 
 import pandas as pd
-
+ 
 from base_de_datos import obtener_conexion, quitar_acentos
-
+ 
 import ollama
-
+ 
 # Frase única de rechazo, usada en TODO el sistema: cuando la búsqueda no
 # encuentra nada, cuando el modelo no puede responder con el contexto
 # dado, y cuando la verificación de fidelidad rechaza una respuesta.
 # Tenerla en un solo lugar evita inconsistencias entre los distintos
 # puntos donde se puede "fallar" al responder.
 RESPUESTA_SIN_INFORMACION = "No tengo esa información, por favor consulta con un bibliotecario."
-
-
+ 
+ 
 # definir mensaje ollama
 def hablar_con_ollama(mensaje):
     respuesta = ollama.chat(
@@ -23,10 +23,10 @@ def hablar_con_ollama(mensaje):
                 "role": "system",
                 "content": f"""
 Eres Ogion, un asistente de biblioteca pública.
-
+ 
 Reglas obligatorias:
-
-
+ 
+ 
 1. Utiliza únicamente la información incluida en el contexto recuperado.
 2. Nunca inventes información.
 3. No deduzcas ni completes datos faltantes.
@@ -47,15 +47,15 @@ Reglas obligatorias:
             "temperature": 0,
         },
     )
-
+ 
     return respuesta["message"]["content"]
-
+ 
 #Definicion de herramientas de busqueda (ahora contra SQLite, no CSV directo)
-
+ 
 # Límite de resultados por búsqueda: evita mandar contextos gigantes al
 # modelo cuando el catálogo crezca a miles de filas.
 LIMITE_RESULTADOS = 10
-
+ 
 # Palabras que no aportan a la búsqueda (conectores, preguntas genéricas).
 # Si el usuario escribe una pregunta completa ("¿Tienen impresora?"), estas
 # palabras se descartan y solo se busca por las palabras con contenido real
@@ -67,8 +67,8 @@ PALABRAS_VACIAS = {
     "como", "cómo", "para", "por", "con", "sobre", "informacion",
     "información", "a", "se", "si", "sí", "existe", "existen",
 }
-
-
+ 
+ 
 def tokenizar_consulta(consulta):
     """Convierte una pregunta libre en una lista de palabras clave,
     quitando signos de puntuación y palabras vacías. Si tras filtrar
@@ -79,8 +79,8 @@ def tokenizar_consulta(consulta):
         if p and p not in PALABRAS_VACIAS and (p.isdigit() or len(p) > 2)
     ]
     return palabras or [consulta.strip()]
-
-
+ 
+ 
 def variantes_palabra(palabra):
     """Genera variantes simples de singular/plural de una palabra, para
     que buscar 'novelas' también encuentre filas que dicen 'Novela'
@@ -89,7 +89,7 @@ def variantes_palabra(palabra):
     (taller/talleres). No cubre plurales irregulares, pero resuelve
     la gran mayoría de los casos reales."""
     variantes = {palabra}
-
+ 
     if palabra.endswith("es") and len(palabra) > 5:
         variantes.add(palabra[:-2])
     if palabra.endswith("s") and len(palabra) > 4:
@@ -97,21 +97,21 @@ def variantes_palabra(palabra):
     if not palabra.endswith("s"):
         variantes.add(palabra + "s")
         variantes.add(palabra + "es")
-
+ 
     return variantes
-
-
+ 
+ 
 def _buscar_generico(tabla, columnas, consulta):
     """Busca en `tabla` filas donde CUALQUIERA de las palabras clave de
     la consulta (o sus variantes de singular/plural) aparezca en
     CUALQUIERA de las columnas indicadas, ignorando acentos."""
     palabras = tokenizar_consulta(consulta)
-
+ 
     todas_las_variantes = set()
     for palabra in palabras:
         for variante in variantes_palabra(quitar_acentos(palabra)):
             todas_las_variantes.add(variante)
-
+ 
     condiciones = []
     parametros = []
     for variante in todas_las_variantes:
@@ -121,46 +121,46 @@ def _buscar_generico(tabla, columnas, consulta):
         )
         condiciones.append(f"({sub_condicion})")
         parametros.extend([patron] * len(columnas))
-
+ 
     query = f"""
         SELECT * FROM {tabla}
         WHERE {' OR '.join(condiciones)}
         LIMIT ?
     """
     parametros.append(LIMITE_RESULTADOS)
-
+ 
     conn = obtener_conexion()
     resultados = pd.read_sql_query(query, conn, params=parametros)
     conn.close()
     return resultados
-
-
+ 
+ 
 def buscar_libros(consulta):
     return _buscar_generico("catalogo", ["titulo", "autor", "genero"], consulta)
-
-
+ 
+ 
 def buscar_horarios(consulta):
     return _buscar_generico("horarios", ["dia"], consulta)
-
-
+ 
+ 
 def buscar_eventos(consulta):
     return _buscar_generico(
         "eventos", ["nombre", "fecha", "descripcion", "publico"], consulta
     )
-
-
+ 
+ 
 def buscar_faq(consulta):
     return _buscar_generico("faq", ["pregunta", "respuesta"], consulta)
-
-
+ 
+ 
 def buscar_politicas(consulta):
     return _buscar_generico(
         "politicas", ["categoria", "pregunta", "respuesta"], consulta
     )
-
+ 
 #Definicion de herramientas de respuesta con contexto
-
-
+ 
+ 
 def formatear_contexto(df):
     """Convierte un DataFrame en bloques de texto tipo 'columna: valor',
     uno por fila, en vez de una tabla alineada con espacios (ambigua
@@ -169,25 +169,25 @@ def formatear_contexto(df):
     for _, fila in df.iterrows():
         bloques.append("\n".join(f"{col}: {val}" for col, val in fila.items()))
     return "\n---\n".join(bloques)
-
-
+ 
+ 
 def verificar_fidelidad(respuesta, contexto):
     """Revisa que los datos concretos (números y nombres propios/títulos)
     que aparecen en la respuesta del modelo también existan en el
     contexto recuperado. Si algo no aparece, es señal de posible
     alucinación.
-
+ 
     A propósito solo marca:
     - Números (ISBN, precios, cantidades, años).
     - Frases de DOS O MÁS palabras seguidas con mayúscula inicial
       (ej. "Harry Potter", "Julio Cortázar"), que es como se ven los
       nombres propios y títulos reales o inventados.
-
+ 
     Una sola palabra capitalizada suelta (ej. "Tenemos", "Novela") ya
     NO se marca, porque casi siempre es solo el inicio de una oración
     y no un dato en sí — marcarlas generaba demasiados falsos positivos
     que rechazaban respuestas correctas.
-
+ 
     Tolera reformulaciones comunes de rangos numéricos, por ejemplo
     que el modelo escriba "3-7" cuando el contexto original dice
     "3 a 7", ya que es una paráfrasis válida y no un dato inventado.
@@ -198,14 +198,14 @@ def verificar_fidelidad(respuesta, contexto):
         respuesta,
     )
     candidatos = numeros + frases_propias
-
+ 
     articulos = {"el", "la", "los", "las", "un", "una", "unos", "unas"}
-
+ 
     faltantes = []
     for t in candidatos:
         if t in contexto:
             continue
-
+ 
         # El modelo suele anteponer un artículo al nombre real
         # (ej. "El Taller de Escritura Creativa"), lo cual no aparece
         # así en el contexto crudo. Si al quitar el artículo inicial
@@ -213,32 +213,61 @@ def verificar_fidelidad(respuesta, contexto):
         primera_palabra, _, resto = t.partition(" ")
         if primera_palabra.lower() in articulos and resto and resto in contexto:
             continue
-
+ 
         rango = re.match(r'^(\d+)-(\d+)$', t)
         if rango and f"{rango.group(1)} a {rango.group(2)}" in contexto:
             continue
-
+ 
         faltantes.append(t)
-
+ 
     return faltantes
-
-
+ 
+ 
+def normalizar_para_prompt(texto):
+    """Normaliza mayúsculas irregulares antes de mandarle el texto al
+    modelo (ej. 'IsaBel AllENde' -> 'Isabel allende'). El modelo no
+    necesita el formato exacto que escribió el usuario para entender
+    la pregunta, y una capitalización errática puede hacer que no
+    reconozca que se refiere a los mismos datos del contexto (que sí
+    están en mayúsculas normales, ej. 'Isabel Allende'), volviéndolo
+    demasiado conservador y provocando que se niegue a responder."""
+    texto = texto.strip()
+    if not texto:
+        return texto
+    return texto[0].upper() + texto[1:].lower()
+ 
+ 
 def responder_con_contexto(pregunta, resultados, mensaje_sin_resultados):
     if resultados.empty:
         return mensaje_sin_resultados
     else:
         contexto = formatear_contexto(resultados)
-
+ 
+    # Si se alcanzó el límite de resultados, probablemente hay más en
+    # la base de datos de los que se muestran aquí. Se lo advertimos al
+    # modelo para que no responda como si esta fuera la lista completa
+    # (importante sobre todo con catálogos grandes, donde una categoría
+    # puede tener cientos de coincidencias y solo mandamos las primeras).
+    nota_limite = ""
+    if len(resultados) >= LIMITE_RESULTADOS:
+        nota_limite = (
+            f"\n\nNota: se muestran los primeros {LIMITE_RESULTADOS} resultados, "
+            "puede haber más en el catálogo que no se incluyeron aquí. Si "
+            "respondes con esta lista, acláralo (ej. 'aquí tienes algunos "
+            "ejemplos' en vez de dar a entender que es la lista completa)."
+        )
+ 
     mensaje = f"""
 Contexto recuperado:
-{contexto}
-
+{contexto}{nota_limite}
+ 
 Pregunta del usuario:
-{pregunta}
-
+{normalizar_para_prompt(pregunta)}
+ 
 Instrucciones obligatorias:
-
-
+ 
+ 
+ 
 1. Responde únicamente con información escrita de forma literal en el contexto.
 2. No agregues lugares, áreas, procedimientos, pasos ni recomendaciones que no aparezcan en el contexto.
 3. No reformules una ausencia de información como una explicación probable.
@@ -246,51 +275,60 @@ Instrucciones obligatorias:
 "{RESPUESTA_SIN_INFORMACION}"
 5. Puedes resumir, pero no añadir ningún dato nuevo.
 6. Sé breve y directo. No expliques por qué no puedes responder.
-
+ 
 Respuesta:
 """
-
+ 
     respuesta_final = hablar_con_ollama(mensaje)
-
+ 
+    # DEBUG TEMPORAL: bórralo cuando ya no lo necesites (búscalo por
+    # "DEBUG TEMPORAL"). Muestra SIEMPRE la respuesta cruda del modelo,
+    # para saber si un "no sé" viene del propio modelo o de nuestro
+    # verificador de fidelidad.
+    print("\n[DEBUG TEMPORAL] Respuesta cruda del modelo:", repr(respuesta_final))
+ 
     faltantes = verificar_fidelidad(respuesta_final, contexto)
     if faltantes:
+        print("[DEBUG TEMPORAL] Rechazada por fidelidad. Sospechosos:", faltantes)
+        print()
         return RESPUESTA_SIN_INFORMACION
-
+ 
+    print()
     return respuesta_final
-
-
+ 
+ 
 def responder_sobre_libros(pregunta, consulta):
     resultados = buscar_libros(consulta)
-
+ 
     return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
-
-
+ 
+ 
 def responder_sobre_horarios(pregunta, consulta):
     resultados = buscar_horarios(consulta)
-
+ 
     return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
-
-
+ 
+ 
 def responder_sobre_eventos(pregunta, consulta):
     resultados = buscar_eventos(consulta)
-
+ 
     return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
-
-
+ 
+ 
 def responder_sobre_faq(pregunta, consulta):
     resultados = buscar_faq(consulta)
-
+ 
     return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
-
-
+ 
+ 
 def responder_sobre_politicas(pregunta, consulta):
     resultados = buscar_politicas(consulta)
-
+ 
     return responder_con_contexto(pregunta, resultados, RESPUESTA_SIN_INFORMACION)
-
-
+ 
+ 
 #Definicion del clasificador de intencion (para la caja de texto libre)
-
+ 
 # Cada categoría tiene palabras clave con un "peso": las palabras muy
 # específicas de esa categoría valen 2 puntos, las genéricas (que
 # también podrían aparecer en otras categorías) valen 1 punto. Esto
@@ -329,7 +367,7 @@ CATEGORIAS = {
         "prestados": 2, "prestada": 2, "prestadas": 2,
     },
 }
-
+ 
 BUSCADORES = {
     "libros": (buscar_libros, RESPUESTA_SIN_INFORMACION),
     "horarios": (buscar_horarios, RESPUESTA_SIN_INFORMACION),
@@ -337,8 +375,8 @@ BUSCADORES = {
     "faq": (buscar_faq, RESPUESTA_SIN_INFORMACION),
     "politicas": (buscar_politicas, RESPUESTA_SIN_INFORMACION),
 }
-
-
+ 
+ 
 def clasificar_intencion(pregunta):
     """Devuelve una lista de categorías candidatas, ordenadas de la más
     probable a la menos probable, según las palabras clave encontradas
@@ -346,29 +384,29 @@ def clasificar_intencion(pregunta):
     lista vacía."""
     limpio = quitar_acentos(re.sub(r"[¿?¡!.,;:]", " ", pregunta.lower()))
     palabras = limpio.split()
-
+ 
     puntajes = {categoria: 0 for categoria in CATEGORIAS}
     for palabra in palabras:
         for categoria, palabras_clave in CATEGORIAS.items():
             if palabra in palabras_clave:
                 puntajes[categoria] += palabras_clave[palabra]
-
+ 
     candidatas = sorted(
         (categoria for categoria, puntos in puntajes.items() if puntos > 0),
         key=lambda categoria: puntajes[categoria],
         reverse=True,
     )
     return candidatas
-
-
+ 
+ 
 def _fue_respuesta_fallida(respuesta):
     # Se usa "in" (no "startswith") a propósito: si el modelo llegara a
     # agregar texto antes de la frase de rechazo pese a la instrucción,
     # esto la sigue detectando y prueba la siguiente categoría en vez
     # de quedarse con una respuesta con explicaciones de más.
     return RESPUESTA_SIN_INFORMACION in respuesta
-
-
+ 
+ 
 def responder(pregunta):
     """Punto de entrada único para la caja de texto libre: prueba las
     categorías en orden de probabilidad (según el clasificador) y, si
@@ -378,15 +416,15 @@ def responder(pregunta):
     Si el clasificador no dio ninguna pista, se prueban todas."""
     candidatas = clasificar_intencion(pregunta)
     orden = candidatas + [c for c in BUSCADORES if c not in candidatas]
-
+ 
     for categoria in orden:
         buscar_funcion, mensaje_vacio = BUSCADORES[categoria]
         resultados = buscar_funcion(pregunta)
         if resultados.empty:
             continue
-
+ 
         respuesta = responder_con_contexto(pregunta, resultados, mensaje_vacio)
         if not _fue_respuesta_fallida(respuesta):
             return respuesta
-
+ 
     return RESPUESTA_SIN_INFORMACION
