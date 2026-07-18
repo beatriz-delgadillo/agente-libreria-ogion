@@ -32,11 +32,10 @@ demo = gr.ChatInterface(
     examples=[
         "¿Tienen libros de Isabel Allende?",
         "¿A qué hora abren los sábados?",
-        "¿Qué eventos hay este mes?",
+        "¿Qué eventos hay para niños?",
         "¿Cuáles son las políticas de préstamo?",
     ],
 )
 
 if __name__ == "__main__":
-
     demo.launch(server_name="0.0.0.0", server_port=7860)

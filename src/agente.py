@@ -6,7 +6,7 @@ from base_de_datos import obtener_conexion, quitar_acentos
 
 import ollama
 
-# Frase única de rechazo, usada en TODO el sistema.
+# Frase única de rechazo, usada en TODO el sistema
 RESPUESTA_SIN_INFORMACION = "No tengo esa información, por favor consulta con un bibliotecario."
 
 
@@ -201,6 +201,9 @@ def verificar_fidelidad(respuesta, contexto):
             continue
 
         # El modelo suele anteponer un artículo al nombre real
+        # (ej. "El Taller de Escritura Creativa"), lo cual no aparece
+        # así en el contexto crudo. Si al quitar el artículo inicial
+        # el resto sí aparece, no es una alucinación.
         primera_palabra, _, resto = t.partition(" ")
         if primera_palabra.lower() in articulos and resto and resto in contexto:
             continue
@@ -228,6 +231,23 @@ def normalizar_para_prompt(texto):
     return texto[0].upper() + texto[1:].lower()
 
 
+# Frases que indican que el modelo está adivinando/especulando en vez
+# de responder solo con datos del contexto (viola la regla 3 de arriba).
+# verificar_fidelidad no las detecta porque no son "datos" (no son
+# números ni nombres propios) — son simplemente lenguaje de suposición.
+FRASES_ESPECULATIVAS = (
+    "es probable que", "probablemente", "es posible que", "seguramente",
+    "podria ser que", "posiblemente", "lo mas seguro es", "es de suponer",
+    "tal vez", "quiza", "quizas", "seguro que", "es de esperarse",
+    "cabria esperar", "lo mas comun es que",
+)
+
+
+def contiene_especulacion(respuesta):
+    texto = quitar_acentos(respuesta.lower())
+    return any(frase in texto for frase in FRASES_ESPECULATIVAS)
+
+
 def responder_con_contexto(pregunta, resultados, mensaje_sin_resultados):
     if resultados.empty:
         return mensaje_sin_resultados
@@ -237,6 +257,8 @@ def responder_con_contexto(pregunta, resultados, mensaje_sin_resultados):
     # Si se alcanzó el límite de resultados, probablemente hay más en
     # la base de datos de los que se muestran aquí. Se lo advertimos al
     # modelo para que no responda como si esta fuera la lista completa
+    # (importante sobre todo con catálogos grandes, donde una categoría
+    # puede tener cientos de coincidencias y solo mandamos las primeras).
     nota_limite = ""
     if len(resultados) >= LIMITE_RESULTADOS:
         nota_limite = (
@@ -270,6 +292,9 @@ Respuesta:
 """
 
     respuesta_final = hablar_con_ollama(mensaje)
+
+    if contiene_especulacion(respuesta_final):
+        return RESPUESTA_SIN_INFORMACION
 
     faltantes = verificar_fidelidad(respuesta_final, contexto)
     if faltantes:
@@ -312,7 +337,7 @@ def responder_sobre_politicas(pregunta, consulta):
 
 # Cada categoría tiene palabras clave con un "peso": las palabras muy
 # específicas de esa categoría valen 2 puntos, las genéricas (que
-# también podrían aparecer en otras categorías) valen 1 punto.
+# también podrían aparecer en otras categorías) valen 1 punto. 
 CATEGORIAS = {
     "libros": {
         "autor": 2, "autora": 2, "isbn": 2, "catalogo": 2, "novela": 2,
