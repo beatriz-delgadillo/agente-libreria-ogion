@@ -29,12 +29,7 @@ TABLAS = {
 
 
 # Caracteres "tipográficos" que Word/Excel suelen sustituir automáticamente
-# y que se ven idénticos a su versión normal a simple vista, pero son un
-# carácter distinto a nivel de código (por eso una búsqueda por "wifi" no
-# encontraba "Wi‑Fi" escrito con un guion de no separación). Los guiones
-# (de cualquier variante, incluido el normal "-") se eliminan por completo
-# en vez de normalizarse, porque una palabra como "wifi" debe encontrar
-# "Wi-Fi" sin que el guion de en medio lo estorbe.
+# y que se ven idénticos a su versión normal a simple vista.
 CARACTERES_A_ELIMINAR = {
     "\u2010": "",  # guion tipográfico
     "\u2011": "",  # guion de no separación
