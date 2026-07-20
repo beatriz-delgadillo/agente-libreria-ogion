@@ -298,7 +298,7 @@ URL pública:
 
 ### Captura de pantalla
 
-![Ogion funcionando en OCI](imagenes/ogion_oci.png)
+![Ogion funcionando en OCI](docs/imagenes/ogion_oci.png)
 
 ---
 
