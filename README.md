@@ -1,7 +1,5 @@
 # Agente Bibliotecario Ogion
 
-Ogion es un agente bibliotecario desarrollado como parte del Challenge de Agentes de IA de Oracle Next Education y Alura LATAM.
-
 🚀 **Prueba Ogion:** http://163.192.130.44:7860/
 
 ## Descripción general
